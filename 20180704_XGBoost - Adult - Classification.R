@@ -18,8 +18,10 @@
 #*      Github upload
 #*    - Initial XGBoost Results: Train AUC = 0.953397, Test CV  
 #*      AUC = 0.929003, Validate AUC = 0.9277
-#*    - MLR Random Parameter XGBoost Results: Train AUC = ?, 
-#*      Test CV AUC = ?, Validate AUC = ?
+#*    - MLR Random Parameter XGBoost Results: Train AUC =  
+#*      0.958285, Test CV AUC = 0.9286709, Validate AUC = 0.9286
+#*    - MLR Grid Search XGBoost Results: Train AUC = 0.978390,
+#*      Test CV AUC = 0.9291430, Validate AUC = 0.9222
 #**************************************************************
 #**************************************************************
 
@@ -839,10 +841,19 @@ Train.lrn <- setHyperPars(
 )
 
 
+#* Train up xgboost model from learner that now has optimized hyperparamaters
+Train.xgb.lrn <- mlr::train(
+  learner = Train.lrn
+  , task = Train.Task
+)
+
+
 #* Create tasks for Score.Data
 Score.Task <- makeClassifTask(data = Score.Data
                               , target = Model.Target
                               , positive = ">50K."
+                              , fixup.data = "no" # Doesn't prevent empty levels from being dropped
+                              , check.data = FALSE
 )
 
 
@@ -854,15 +865,15 @@ Score.Task <- createDummyFeatures(obj = Score.Task
 
 #* Create a prediction set from Score.Task; will have to call $response
 Score.predict <- predict(
-  Train.lrn
-  , dScore
+  Train.xgb.lrn
+  , Score.Task # dScore
 )
 
 
-#* Determine Score ROC statistics (AUC = ?)
+#* Determine Score ROC statistics (AUC = 0.9286)
 roc(
   response = Score.y
-  , predictor = Score.predict$response
+  , predictor = Score.predict$data[[4]]
   , auc = TRUE
   , plot = TRUE
 )
@@ -968,9 +979,10 @@ parallelStop()
 print(Sys.time() - Start.Time)
 
 
-#* Runtime: 2.76 hours
-#* Best model: max_depth = 4, eta = 0.3, gamma = 0, colsample_bytree = 1, min_child_weight = 1, subsample = 1
-#* AUC.Test.Mean = 0.9289157
+
+#* Runtime: 52 minutes
+#* Best model: max_depth = 6, eta = 0.2, gamma = 0, colsample_bytree = 1, min_child_weight = 1, subsample = 1
+#* AUC.Test.Mean = 0.9291430
 
 
 #* Best Iteration [?]: Train AUC = ?, Test AUC = ?
@@ -984,10 +996,19 @@ Train.lrn <- setHyperPars(
 )
 
 
+#* Train up xgboost model from learner that now has optimized hyperparamaters
+Train.xgb.lrn.grid <- mlr::train(
+  learner = Train.lrn
+  , task = Train.Task
+)
+
+
 #* Create tasks for Score.Data
 Score.Task <- makeClassifTask(data = Score.Data
                               , target = Model.Target
-                              , positive = ">50K"
+                              , positive = ">50K."
+                              , fixup.data = "no" # Doesn't prevent empty levels from being dropped
+                              , check.data = FALSE
 )
 
 
@@ -999,19 +1020,15 @@ Score.Task <- createDummyFeatures(obj = Score.Task
 
 #* Create a prediction set from Score.Task; will have to call $response
 Score.predict <- predict(
-  object = Train.lrn
-  , task = Score.Task
+  Train.xgb.lrn.grid
+  , Score.Task # dScore
 )
 
 
-#* Determine Score ROC statistics (AUC = ?)
+#* Determine Score ROC statistics (AUC = 0.9222)
 roc(
   response = Score.y
-  , predictor = Score.predict$response
+  , predictor = Score.predict$data[[4]]
   , auc = TRUE
   , plot = TRUE
 )
-
-  
-  
-  
