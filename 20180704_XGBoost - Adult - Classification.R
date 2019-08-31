@@ -831,7 +831,7 @@ print(Sys.time() - Start.Time)
 
 
 #* CV Test AUC = 0.9286709
-Train.tune.random$y
+print(Train.tune.random$y)
 
 
 #* Set parameter values for learner equal to the optimized values 
@@ -975,24 +975,24 @@ Train.mlr.grid <- tuneParams(
 #* End parallelization
 parallelStop()
 
-#* Print time spend on parameter tuning, 2.76 hour runtime
+#* Print time spend on parameter tuning, 33 minute runtime
 print(Sys.time() - Start.Time)
 
 
 
-#* Runtime: 52 minutes
+#* Runtime: 33 minutes
 #* Best model: max_depth = 6, eta = 0.2, gamma = 0, colsample_bytree = 1, min_child_weight = 1, subsample = 1
-#* AUC.Test.Mean = 0.9291430
+#* AUC.Test.Mean = 0.929125
 
 
-#* Best Iteration [?]: Train AUC = ?, Test AUC = ?
-Train.tune.random$y
+#* Show Test AUC
+print(Train.mlr.grid$y)
 
 
 #* Set parameter values for learner equal to the optimized values 
 Train.lrn <- setHyperPars(
   learner = Train.lrn
-  , par.vals = Train.tune.random$x
+  , par.vals = Train.mlr.grid$x
 )
 
 
@@ -1025,7 +1025,7 @@ Score.predict <- predict(
 )
 
 
-#* Determine Score ROC statistics (AUC = 0.9222)
+#* Determine Score ROC statistics (AUC = 0.8942)
 roc(
   response = Score.y
   , predictor = Score.predict$data[[4]]
